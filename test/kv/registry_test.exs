@@ -1,18 +1,20 @@
 defmodule KV.RegistryTest do
   use ExUnit.Case, async: true
 
+  alias KV.{Bucket, Registry}
+
   setup do
-    registry = start_supervised!(KV.Registry)
+    registry = start_supervised!(Registry)
     %{registry: registry}
   end
 
   test "spawns buckets", %{registry: registry} do
-    assert KV.Registry.lookup(registry, "shopping") == :error
+    assert Registry.lookup(registry, "shopping") == :error
 
-    KV.Registry.create(registry, "shopping")
-    assert {:ok, shopping_bucket} = KV.Registry.lookup(registry, "shopping")
+    Registry.create(registry, "shopping")
+    assert {:ok, shopping_bucket} = Registry.lookup(registry, "shopping")
 
-    KV.Bucket.put(shopping_bucket, "milk", 1)
-    assert KV.Bucket.get(shopping_bucket, "milk") == 1
+    Bucket.put(shopping_bucket, "milk", 1)
+    assert Bucket.get(shopping_bucket, "milk") == 1
   end
 end
