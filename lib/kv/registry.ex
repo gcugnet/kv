@@ -1,5 +1,4 @@
 defmodule KV.Registry do
-  alias Hex.API.Key
   use GenServer
 
   # -------------------------------------------------------------------------- #
@@ -34,7 +33,7 @@ defmodule KV.Registry do
   Ensures there is a bucket associated with the given 'name' in 'server'.
   """
   def create(server, name) do
-    GenServer.cast(server, {:create, name})
+    GenServer.call(server, {:create, name})
   end
 
   # -------------------------------------------------------------------------- #
@@ -52,18 +51,18 @@ defmodule KV.Registry do
   # 4. The previous handle_call callback for lookup was removed.
 
   @impl true
-  def handle_cast({:create, name}, {names, refs}) do
+  def handle_call({:create, name}, _from, {names, refs}) do
     # Read and write to the ETS table instead of the map
     case lookup(names, name) do
-      {:ok, _pid} ->
-        {:noreply, {names, refs}}
+      {:ok, pid} ->
+        {:reply, pid, {names, refs}}
 
       :error ->
         {:ok, pid} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)
         ref = Process.monitor(pid)
         refs = Map.put(refs, ref, name)
         :ets.insert(names, {name, pid})
-        {:noreply, {names, refs}}
+        {:reply, pid, {names, refs}}
     end
   end
 
