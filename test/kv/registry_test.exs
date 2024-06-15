@@ -3,9 +3,9 @@ defmodule KV.RegistryTest do
 
   alias KV.{Bucket, Registry}
 
-  setup do
-    registry = start_supervised!(Registry)
-    %{registry: registry}
+  setup context do
+    _ = start_supervised!({Registry, name: context.test})
+    %{registry: context.test}
   end
 
   test "spawns buckets", %{registry: registry} do
