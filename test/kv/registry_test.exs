@@ -21,8 +21,10 @@ defmodule KV.RegistryTest do
   test "remove buckets on exit", %{registry: registry} do
     Registry.create(registry, "shopping")
     {:ok, shopping_bucket} = Registry.lookup(registry, "shopping")
-
     Agent.stop(shopping_bucket)
+
+    # Do a call to ensure the registry processed the DOWN message
+    _ = Registry.create(registry, "bogus")
     assert Registry.lookup(registry, "shopping") == :error
   end
 
@@ -32,6 +34,9 @@ defmodule KV.RegistryTest do
 
     # Remove bucket with non-normal reason
     Agent.stop(shopping_bucket, :shutdown)
+
+    # Do a call to ensure the registry procusses the DOWN message
+    _ = Registry.create(registry, "bogus")
     assert Registry.lookup(registry, "shopping") == :error
   end
 end
